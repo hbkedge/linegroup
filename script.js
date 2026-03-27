@@ -152,7 +152,7 @@ document.getElementById('submit-order').addEventListener('click', async () => {
     const orderData = {
         userId: userProfile ? userProfile.userId : 'anonymous',
         userName: name,
-        userPhone: phone,
+        phone: phone, // Changed from userPhone to phone to match GAS
         pickup: document.getElementById('order-pickup').value,
         note: document.getElementById('order-note').value,
         items: cart,
