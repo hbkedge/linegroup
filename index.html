@@ -45,11 +45,11 @@
             </section>
 
             <div class="bottom-nav">
-                <div class="nav-icons" style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <button class="btn-outline" onclick="showScreen('order-history-screen')"
-                        style="flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ddd; background: white;">歷史訂單</button>
-                    <button class="btn-outline" onclick="showScreen('payment-report-screen')"
-                        style="flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ddd; background: white;">回報付款</button>
+                <div class="nav-icons" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button id="nav-history" class="btn-outline" 
+                        style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">歷史訂單</button>
+                    <button id="nav-payment" class="btn-outline" 
+                        style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">回報付款</button>
                 </div>
                 <button id="view-cart" class="btn-primary">
                     查看購物車 (<span id="cart-count">0</span>)

@@ -13,43 +13,107 @@ let userProfile = null;
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmYllIoNBcZZg6s2Ih1571MkEgMbJZtwIMf64BYtZ9m3q1SKbmTW6yznhzO2Vjp6Jm/exec';
 
 async function init() {
+    // Force hide loading after 8 seconds safeguard
+    const loadingTimeout = setTimeout(() => {
+        console.warn('Init taking too long, forcing load...');
+        hideLoading();
+    }, 8000);
+
     try {
         console.log('LIFF starting init...');
-        await liff.init({ liffId: '2009603120-T9MofEjW' });
-
+        // Set a timeout for LIFF initialization
+        const liffPromise = liff.init({ liffId: '2009603120-T9MofEjW' });
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LIFF timeout')), 5000));
+        
+        await Promise.race([liffPromise, timeoutPromise]);
         console.log('LIFF initialized, isLoggedIn:', liff.isLoggedIn());
 
-        if (!liff.isLoggedIn()) {
-            console.log('Not logged in, triggering LIFF login...');
-            liff.login();
-            return;
+        if (liff.isLoggedIn()) {
+            userProfile = await liff.getProfile();
+            console.log('Profile fetched:', userProfile.displayName);
+
+            document.getElementById('user-name').innerText = userProfile.displayName;
+            const avatar = document.getElementById('user-avatar');
+            if (userProfile.pictureUrl) {
+                avatar.src = userProfile.pictureUrl;
+                avatar.style.display = 'block';
+            }
         }
-
-        userProfile = await liff.getProfile();
-        console.log('Profile fetched:', userProfile.displayName);
-
-        document.getElementById('user-name').innerText = userProfile.displayName;
-        const avatar = document.getElementById('user-avatar');
-        if (userProfile.pictureUrl) {
-            avatar.src = userProfile.pictureUrl;
-            avatar.style.display = 'block';
-        }
-
-        // Fetch real products from GAS
-        await fetchProducts();
+        
+        // Fetch real content from GAS
+        await Promise.allSettled([
+            fetchProducts(),
+            fetchCampaign(),
+            fetchOrders()
+        ]);
+        
         renderProducts();
+        clearTimeout(loadingTimeout);
         hideLoading();
     } catch (err) {
-        console.error('LIFF Init failed', err);
-        // Show alert to user in production to help debug
-        if (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
-            alert('LIFF 初始化失敗: ' + err.message);
-        }
-
-        // Fallback for non-LIFF environment (local testing)
-        renderProducts();
-        hideLoading();
+        console.error('Init failed or timed out', err);
+        // Fallback for non-LIFF environment or errors
+        fetchProducts().finally(() => {
+            renderProducts();
+            clearTimeout(loadingTimeout);
+            hideLoading();
+        });
     }
+}
+
+async function fetchCampaign() {
+    try {
+        const response = await fetch(`${GAS_URL}?action=get_config`);
+        const data = await response.json();
+        if (data && data.Title) {
+            document.getElementById('campaign-title').innerText = data.Title;
+            document.getElementById('campaign-ends').innerText = `截單時間: ${data.EndTime || '-'}`;
+        }
+    } catch (err) {
+        console.warn('Could not fetch campaign config');
+    }
+}
+
+async function fetchOrders() {
+    try {
+        const response = await fetch(`${GAS_URL}?action=get_orders`);
+        const data = await response.json();
+        if (Array.isArray(data)) {
+            renderOrders(data);
+        }
+    } catch (err) {
+        console.warn('Could not fetch orders');
+    }
+}
+
+function renderOrders(orders) {
+    const list = document.getElementById('order-history-list');
+    if (!orders || orders.length === 0) {
+        list.innerHTML = '<p style="text-align: center; color: #999;">您還沒有訂單記錄</p>';
+        return;
+    }
+    
+    // If we have a user profile, only show their orders. Otherwise show all (for testing).
+    const filterId = userProfile ? userProfile.userId : null;
+    const myOrders = filterId ? orders.filter(o => o.userId === filterId) : orders;
+
+    if (myOrders.length === 0) {
+        list.innerHTML = '<p style="text-align: center; color: #999;">查無您的訂單記錄</p>';
+        return;
+    }
+
+    list.innerHTML = myOrders.map(o => `
+        <div class="card" style="margin-bottom: 12px; border-left: 4px solid ${o.status === 'Completed' ? '#4cd137' : '#f1c40f'}">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <strong style="color: #2d3436;">#${o.id.slice(-8)}</strong>
+                <span class="status-badge" style="background: #eef2f7; color: #2d3436; margin: 0;">${o.status}</span>
+            </div>
+            <div style="font-size: 14px; color: #636e72;">
+                日期: ${o.timestamp}<br>
+                金額: <span style="color: var(--primary); font-weight: 600;">$${o.total}</span>
+            </div>
+        </div>
+    `).join('');
 }
 
 async function fetchProducts() {
@@ -132,6 +196,15 @@ function hideLoading() {
 }
 
 // Event Listeners
+document.getElementById('nav-history').addEventListener('click', () => {
+    fetchOrders(); // Refresh orders when viewing history
+    showScreen('order-history-screen');
+});
+
+document.getElementById('nav-payment').addEventListener('click', () => {
+    showScreen('payment-report-screen');
+});
+
 document.getElementById('view-cart').addEventListener('click', () => {
     if (cart.length === 0) {
         alert('購物車還是空的唷！');
@@ -230,4 +303,3 @@ function closeApp() {
         setTimeout(() => alert("請手動關閉視窗"), 500);
     }
 }
-
