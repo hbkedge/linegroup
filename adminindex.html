@@ -426,6 +426,12 @@
                 <input type="text" id="c-delivery">
             </div>
             <div class="input-group">
+                <label>選擇開團商品 (可複選)</label>
+                <div id="c-product-selection" style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 6px; background: #fafafa;">
+                    <p style="color:#999; font-size:12px; text-align:center;">正在載入商品列表...</p>
+                </div>
+            </div>
+            <div class="input-group">
                 <label>狀態</label>
                 <select id="c-status">
                     <option value="open">公開收單 (open)</option>
@@ -702,6 +708,36 @@
             document.getElementById('campaign-modal').style.display = 'flex';
             document.getElementById('c-id').value = 'C' + (allCampaigns.length + 1).toString().padStart(2, '0');
             document.getElementById('c-id').disabled = false;
+            // Clear inputs
+            document.getElementById('c-title').value = '';
+            document.getElementById('c-start').value = new Date().toISOString().split('T')[0];
+            document.getElementById('c-end').value = '';
+            document.getElementById('c-delivery').value = '';
+            document.getElementById('c-status').value = 'open';
+            
+            renderProductCheckboxes([]);
+        }
+
+        function renderProductCheckboxes(selectedIds = []) {
+            const container = document.getElementById('c-product-selection');
+            if (allProducts.length === 0) {
+                container.innerHTML = '<p style="color:#999; font-size:12px; text-align:center;">請先至「商品設定」新增商品</p>';
+                return;
+            }
+            
+            // selectedIds could be a comma-separated string from Google Sheets
+            const idsList = typeof selectedIds === 'string' ? selectedIds.split(',').map(s => s.trim()) : selectedIds;
+
+            container.innerHTML = allProducts.map(p => `
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #eee;">
+                    <input type="checkbox" name="c-products" value="${p.ID}" ${idsList.includes(p.ID) ? 'checked' : ''} style="width: 18px; height: 18px;">
+                    <img src="${p.ImageURL}" style="width: 30px; height: 30px; border-radius: 4px; object-fit: cover;">
+                    <div style="flex: 1; font-size: 13px;">
+                        <strong>${p.Name}</strong><br>
+                        <span style="color: var(--primary)">$${p.Price}</span> (ID: ${p.ID})
+                    </div>
+                </div>
+            `).join('');
         }
 
         function editCampaign(id) {
@@ -714,16 +750,22 @@
             document.getElementById('c-end').value = c.EndTime;
             document.getElementById('c-delivery').value = c.DeliveryDate;
             document.getElementById('c-status').value = c.Status;
+            
+            // Populate checkboxes
+            renderProductCheckboxes(c.Products || '');
         }
 
         async function saveCampaign() {
+            const selectedProductIds = Array.from(document.querySelectorAll('input[name="c-products"]:checked')).map(cb => cb.value);
+            
             const campaign = {
                 ID: document.getElementById('c-id').value,
                 Title: document.getElementById('c-title').value,
                 StartTime: document.getElementById('c-start').value,
                 EndTime: document.getElementById('c-end').value,
                 DeliveryDate: document.getElementById('c-delivery').value,
-                Status: document.getElementById('c-status').value
+                Status: document.getElementById('c-status').value,
+                Products: selectedProductIds.join(',') // Save as comma-separated string
             };
             try {
                 await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'save_campaign', campaign }) });

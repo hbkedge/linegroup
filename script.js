@@ -8,6 +8,9 @@ let products = [
 
 let cart = [];
 let userProfile = null;
+let openCampaigns = [];
+let activeCampaign = null;
+let allAvailableProducts = [];
 
 // GAS Web App URL (To be updated after deployment)
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmYllIoNBcZZg6s2Ih1571MkEgMbJZtwIMf64BYtZ9m3q1SKbmTW6yznhzO2Vjp6Jm/exec';
@@ -40,16 +43,15 @@ async function init() {
             }
         }
         
-        // Fetch real content from GAS
+        // Fetch initial data
         await Promise.allSettled([
-            fetchProducts(),
-            fetchCampaign(),
+            fetchProducts(), // Fetches all available products once
+            fetchCampaign(), // Fetches open campaigns
             fetchOrders()
         ]);
         
-        renderProducts();
         clearTimeout(loadingTimeout);
-        hideLoading();
+        // hideLoading is called inside fetchCampaign or selectCampaign
     } catch (err) {
         console.error('Init failed or timed out', err);
         // Fallback for non-LIFF environment or errors
@@ -65,13 +67,56 @@ async function fetchCampaign() {
     try {
         const response = await fetch(`${GAS_URL}?action=get_config`);
         const data = await response.json();
-        if (data && data.Title) {
-            document.getElementById('campaign-title').innerText = data.Title;
-            document.getElementById('campaign-ends').innerText = `截單時間: ${data.EndTime || '-'}`;
+        
+        if (Array.isArray(data)) {
+            openCampaigns = data.filter(c => c.Status === 'open');
+        } else if (data && data.Status === 'open') {
+            openCampaigns = [data];
+        } else {
+            openCampaigns = [];
+        }
+
+        if (openCampaigns.length === 0) {
+            alert('目前沒有進行中的團購喔！');
+            hideLoading();
+            return;
+        }
+
+        if (openCampaigns.length === 1) {
+            selectCampaign(openCampaigns[0].ID);
+        } else {
+            renderCampaignSelection();
+            showScreen('campaign-select-screen');
+            hideLoading();
         }
     } catch (err) {
-        console.warn('Could not fetch campaign config');
+        console.warn('Could not fetch campaign config', err);
+        hideLoading();
     }
+}
+
+function renderCampaignSelection() {
+    const list = document.getElementById('campaign-list');
+    list.innerHTML = openCampaigns.map(c => `
+        <div class="card campaign-card" onclick="selectCampaign('${c.ID}')" style="cursor:pointer; margin-bottom: 15px; border-left: 5px solid var(--primary); padding: 20px;">
+            <h3 style="margin:0 0 8px 0;">${c.Title}</h3>
+            <p style="color:#636e72; font-size:14px; margin-bottom:0;">截單日: ${c.EndTime || '-'}</p>
+        </div>
+    `).join('');
+}
+
+function selectCampaign(id) {
+    activeCampaign = openCampaigns.find(c => c.ID === id);
+    if (!activeCampaign) return;
+
+    // Update UI title and ends
+    document.getElementById('campaign-title').innerText = activeCampaign.Title;
+    document.getElementById('campaign-ends').innerText = `截單時間: ${activeCampaign.EndTime || '-'}`;
+
+    // Filter products
+    filterAndRenderProducts();
+    
+    showScreen('home-screen');
 }
 
 async function fetchOrders() {
@@ -120,18 +165,37 @@ async function fetchProducts() {
     try {
         const response = await fetch(`${GAS_URL}?action=get_products`);
         const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
-            products = data.map((p, i) => ({
+        if (Array.isArray(data)) {
+            allAvailableProducts = data;
+        }
+    } catch (err) {
+        console.warn('Using mock products due to fetch error');
+    }
+}
+
+function filterAndRenderProducts() {
+    if (!activeCampaign || !activeCampaign.Products) {
+        // Fallback: show all active products if none specifically linked
+        products = allAvailableProducts.map((p, i) => ({
+            id: i,
+            name: p.Name,
+            price: p.Price,
+            img: p.Image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop',
+            stock: p.Stock || 99
+        }));
+    } else {
+        const productIds = activeCampaign.Products.split(',').map(s => s.trim());
+        products = allAvailableProducts
+            .filter(p => productIds.includes(p.ID))
+            .map((p, i) => ({
                 id: i,
                 name: p.Name,
                 price: p.Price,
                 img: p.Image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop',
                 stock: p.Stock || 99
             }));
-        }
-    } catch (err) {
-        console.warn('Using mock products due to fetch error');
     }
+    renderProducts();
 }
 
 function renderProducts() {
