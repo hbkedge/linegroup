@@ -10,7 +10,7 @@ let cart = [];
 let userProfile = null;
 
 // GAS Web App URL (To be updated after deployment)
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxflj9jPfH5NhOPYBP_2_J4K3xc4azzDkhISoge6Elx5hLIOh7_rdFaq3gsSsjw2z6R/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvSeLWUmZQwrtGdmCPoyfv7M7sQ-OyVizlOi2ua8CLBmsHRZ4bDa3Ty5Jpx-mcaMg/exec';
 
 async function init() {
     try {
@@ -220,4 +220,14 @@ document.getElementById('submit-payment').addEventListener('click', async () => 
 
 // Run Init
 init();
+
+function closeApp() {
+    if (liff.isInClient()) {
+        liff.closeWindow();
+    } else {
+        // Fallback for external browsers
+        window.location.href = "https://line.me/"; // Or alert them
+        setTimeout(() => alert("請手動關閉視窗"), 500);
+    }
+}
 
