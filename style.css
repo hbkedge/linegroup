@@ -158,9 +158,10 @@ h1 {
     padding: 12px;
     border-radius: var(--radius);
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: transform 0.2s;
+    transition: 0.2s;
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 .product-card:active {
@@ -188,14 +189,16 @@ h1 {
 }
 
 .btn-add-cart {
-    margin-top: auto;
+    margin-top: 12px;
     background: #f1f3f5;
+    color: #2d3436;
     border: none;
-    padding: 8px;
-    border-radius: 10px;
+    padding: 10px;
+    border-radius: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: 0.2s;
+    font-size: 14px;
 }
 
 .btn-add-cart:hover {
@@ -283,6 +286,50 @@ h1 {
     align-items: center;
     font-size: 40px;
     margin: 0 auto 24px;
+}
+
+/* Campaign Selection */
+.campaign-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.campaign-card {
+    background: white;
+    padding: 24px !important;
+    border-radius: var(--radius);
+    border-left: 6px solid var(--primary) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transition: 0.2s;
+}
+
+.campaign-card:active {
+    transform: scale(0.98);
+}
+
+.campaign-card h3 {
+    color: var(--text);
+    margin-bottom: 8px;
+    font-size: 20px;
+}
+
+.campaign-card p {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .btn-secondary {

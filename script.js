@@ -97,12 +97,19 @@ async function fetchCampaign() {
 
 function renderCampaignSelection() {
     const list = document.getElementById('campaign-list');
-    list.innerHTML = openCampaigns.map(c => `
-        <div class="card campaign-card" onclick="selectCampaign('${c.ID}')" style="cursor:pointer; margin-bottom: 15px; border-left: 5px solid var(--primary); padding: 20px;">
-            <h3 style="margin:0 0 8px 0;">${c.Title}</h3>
-            <p style="color:#636e72; font-size:14px; margin-bottom:0;">截單日: ${c.EndTime || '-'}</p>
-        </div>
-    `).join('');
+    list.innerHTML = openCampaigns.map(c => {
+        // Simple date format: 2026-03-27
+        const dateStr = c.EndTime ? new Date(c.EndTime).toLocaleDateString('zh-TW', {
+            month: 'long', day: 'numeric', weekday: 'long'
+        }) : '無日期';
+
+        return `
+            <div class="card campaign-card" onclick="selectCampaign('${c.ID}')">
+                <h3>${c.Title}</h3>
+                <p>⏰ 截止時間: ${dateStr}</p>
+            </div>
+        `;
+    }).join('');
 }
 
 function selectCampaign(id) {
@@ -110,8 +117,12 @@ function selectCampaign(id) {
     if (!activeCampaign) return;
 
     // Update UI title and ends
+    const dateStr = activeCampaign.EndTime ? new Date(activeCampaign.EndTime).toLocaleDateString('zh-TW', {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : '無';
+
     document.getElementById('campaign-title').innerText = activeCampaign.Title;
-    document.getElementById('campaign-ends').innerText = `截單時間: ${activeCampaign.EndTime || '-'}`;
+    document.getElementById('campaign-ends').innerText = `截單時間: ${dateStr}`;
 
     // Filter products
     filterAndRenderProducts();
@@ -200,6 +211,10 @@ function filterAndRenderProducts() {
 
 function renderProducts() {
     const grid = document.getElementById('products');
+    if (products.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">目前沒有可訂購的商品</p>';
+        return;
+    }
     grid.innerHTML = products.map(p => `
         <div class="product-card">
             <img src="${p.img}" alt="${p.name}" class="product-image">
@@ -207,7 +222,7 @@ function renderProducts() {
             <div class="price">$${p.price}</div>
             <button class="btn-add-cart" onclick="addToCart(${p.id})">加入購物車</button>
         </div>
-    `).join('');
+    `).join('') + '<div style="height: 120px; grid-column: 1/-1;"></div>'; // Extra space at bottom for nav
 }
 
 function addToCart(productId) {
