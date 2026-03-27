@@ -10,7 +10,7 @@ let cart = [];
 let userProfile = null;
 
 // GAS Web App URL (To be updated after deployment)
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwPnBa7LL4aRkqX7GMhE5RIY4_4vmKLzPmXoiMbOMqtPaQx_ACJYXtMT2m8HT8pYYzF/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvSeLWUmZQwrtGdmCPoyfv7M7sQ-OyVizlOi2ua8CLBmsHRZ4bDa3Ty5Jpx-mcaMg/exec';
 
 async function init() {
     try {
