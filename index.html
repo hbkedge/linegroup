@@ -16,12 +16,13 @@
 </head>
 
 <body>
+    <!-- Loading Screen (Moved outside #app for better isolation) -->
+    <div id="loading">
+        <div class="loader"></div>
+        <p>正在載入開團資訊...</p>
+    </div>
+
     <div id="app">
-        <!-- Loading Screen -->
-        <div id="loading">
-            <div class="loader"></div>
-            <p>正在載入開團資訊...</p>
-        </div>
 
         <!-- Campaign Selection Screen -->
         <section id="campaign-select-screen" class="screen">
@@ -38,7 +39,10 @@
         <main id="home-screen" class="screen">
             <header>
                 <div class="header-content">
-                    <h1>最新開團</h1>
+                    <div>
+                        <button id="nav-back-to-campaigns" class="btn-back" style="margin-bottom: 5px;">&larr; 切換活動</button>
+                        <h1>最新開團</h1>
+                    </div>
                     <div id="user-info" class="user-chip">
                         <img id="user-avatar" src="" alt="avatar" style="display:none;">
                         <span id="user-name">訪客</span>

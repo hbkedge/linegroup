@@ -127,8 +127,17 @@ function selectCampaign(id) {
     // Filter products
     filterAndRenderProducts();
     
-    // Ensure loading is GONE
-    document.getElementById('loading').classList.remove('active');
+    // Hide loading screen
+    document.getElementById('loading').classList.add('hidden');
+    
+    // If only one campaign, hide the back-to-campaigns button
+    const backBtn = document.getElementById('nav-back-to-campaigns');
+    if (openCampaigns.length <= 1) {
+        backBtn.style.display = 'none';
+    } else {
+        backBtn.style.display = 'flex';
+    }
+
     showScreen('home-screen');
 }
 
@@ -291,6 +300,10 @@ document.getElementById('nav-history').addEventListener('click', () => {
 
 document.getElementById('nav-payment').addEventListener('click', () => {
     showScreen('payment-report-screen');
+});
+
+document.getElementById('nav-back-to-campaigns').addEventListener('click', () => {
+    showScreen('campaign-select-screen');
 });
 
 document.getElementById('view-cart').addEventListener('click', () => {
