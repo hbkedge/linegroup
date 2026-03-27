@@ -266,13 +266,20 @@ function removeFromCart(index) {
 }
 
 function showScreen(screenId) {
+    // Hide the global loading layer
+    const loader = document.getElementById('loading');
+    if (loader) loader.classList.add('hidden');
+
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
     window.scrollTo(0, 0);
 }
 
 function hideLoading() {
-    document.getElementById('loading').classList.remove('active');
+    const loader = document.getElementById('loading');
+    if (loader) loader.classList.add('hidden');
+    
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('home-screen').classList.add('active');
 }
 
