@@ -14,7 +14,10 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwPnBa7LL4aRkqX7GMhE5RI
 
 async function init() {
     try {
+        console.log('LIFF starting init...');
         await liff.init({ liffId: '2009603120-T9MofEjW' });
+
+        console.log('LIFF initialized, isLoggedIn:', liff.isLoggedIn());
 
         if (!liff.isLoggedIn()) {
             console.log('Not logged in, triggering LIFF login...');
@@ -23,10 +26,14 @@ async function init() {
         }
 
         userProfile = await liff.getProfile();
+        console.log('Profile fetched:', userProfile.displayName);
+
         document.getElementById('user-name').innerText = userProfile.displayName;
         const avatar = document.getElementById('user-avatar');
-        avatar.src = userProfile.pictureUrl;
-        avatar.style.display = 'block';
+        if (userProfile.pictureUrl) {
+            avatar.src = userProfile.pictureUrl;
+            avatar.style.display = 'block';
+        }
 
         // Fetch real products from GAS
         await fetchProducts();
@@ -34,6 +41,11 @@ async function init() {
         hideLoading();
     } catch (err) {
         console.error('LIFF Init failed', err);
+        // Show alert to user in production to help debug
+        if (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+            alert('LIFF 初始化失敗: ' + err.message);
+        }
+
         // Fallback for non-LIFF environment (local testing)
         renderProducts();
         hideLoading();
