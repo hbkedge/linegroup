@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>團購接單系統 | LINE Group Buy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+TC:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading" class="screen active">
+            <div class="loader"></div>
+            <p>正在載入開團資訊...</p>
+        </div>
+
+        <!-- Home / Product List Screen -->
+        <main id="home-screen" class="screen">
+            <header>
+                <div class="header-content">
+                    <h1>最新開團</h1>
+                    <div id="user-info" class="user-chip">
+                        <img id="user-avatar" src="" alt="avatar" style="display:none;">
+                        <span id="user-name">訪客</span>
+                    </div>
+                </div>
+                <div class="campaign-banner">
+                    <div class="status-badge">進行中</div>
+                    <h2 id="campaign-title">本週精選團購</h2>
+                    <p id="campaign-ends">截單時間: 載入中...</p>
+                </div>
+            </header>
+
+            <section id="products" class="product-grid">
+                <!-- Products will be injected here -->
+            </section>
+
+            <div class="bottom-nav">
+                <div class="nav-icons" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button class="btn-outline" onclick="showScreen('order-history-screen')"
+                        style="flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ddd; background: white;">歷史訂單</button>
+                    <button class="btn-outline" onclick="showScreen('payment-report-screen')"
+                        style="flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ddd; background: white;">回報付款</button>
+                </div>
+                <button id="view-cart" class="btn-primary">
+                    查看購物車 (<span id="cart-count">0</span>)
+                </button>
+            </div>
+        </main>
+
+
+        <!-- Checkout Screen -->
+        <section id="checkout-screen" class="screen">
+            <div class="header-back">
+                <button class="btn-back" onclick="showScreen('home-screen')">&larr; 返回商品</button>
+                <h2>結帳確認</h2>
+            </div>
+
+            <div class="order-summary card">
+                <h3>訂單明細</h3>
+                <div id="cart-items-list">
+                    <!-- Cart items -->
+                </div>
+                <div class="total-row">
+                    <span>總計</span>
+                    <span id="cart-total">$0</span>
+                </div>
+            </div>
+
+            <div class="form-section card">
+                <h3>收件資訊</h3>
+                <div class="input-group">
+                    <label>收件人姓名</label>
+                    <input type="text" id="order-name" placeholder="請輸入姓名">
+                </div>
+                <div class="input-group">
+                    <label>聯繫電話</label>
+                    <input type="tel" id="order-phone" placeholder="請輸入電話">
+                </div>
+                <div class="input-group">
+                    <label>取貨方式</label>
+                    <select id="order-pickup">
+                        <option value="store">店面自取</option>
+                        <option value="face">面交 (嘉義市)</option>
+                        <option value="delivery">宅配 (+100元)</option>
+                        <option value="convenience">超商店到店 (+60元)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>備註 (選填)</label>
+                    <textarea id="order-note" placeholder="如有特殊需求請留言"></textarea>
+                </div>
+            </div>
+
+            <div class="footer-actions">
+                <button id="submit-order" class="btn-primary btn-large">確認送出訂單</button>
+            </div>
+        </section>
+
+        <!-- Payment Report Screen -->
+        <section id="payment-report-screen" class="screen">
+            <div class="header-back">
+                <button class="btn-back" onclick="showScreen('home-screen')">&larr; 返回首頁</button>
+                <h2>回報付款</h2>
+            </div>
+
+            <div class="form-section card">
+                <h3>填寫付款資訊</h3>
+                <div class="input-group">
+                    <label>訂單編號 (前六碼)</label>
+                    <input type="text" id="pay-order-id" placeholder="例如: ORD-12345">
+                </div>
+                <div class="input-group">
+                    <label>匯款帳號末五碼</label>
+                    <input type="number" id="pay-last-5" placeholder="請輸入五位數字">
+                </div>
+                <div class="input-group">
+                    <label>匯款金額</label>
+                    <input type="number" id="pay-amount" placeholder="實付金額">
+                </div>
+                <div class="input-group">
+                    <label>匯款日期</label>
+                    <input type="date" id="pay-date">
+                </div>
+            </div>
+
+            <div class="footer-actions">
+                <button id="submit-payment" class="btn-primary">提交回報</button>
+            </div>
+        </section>
+
+        <!-- Order History Screen -->
+        <section id="order-history-screen" class="screen">
+            <div class="header-back">
+                <button class="btn-back" onclick="showScreen('home-screen')">&larr; 返回首頁</button>
+                <h2>我的訂單</h2>
+            </div>
+            <div id="order-history-list">
+                <!-- Orders will be listed here -->
+                <p style="text-align: center; color: #999;">您還沒有訂單記錄</p>
+            </div>
+        </section>
+
+        <!-- Success Screen -->
+
+        <section id="success-screen" class="screen">
+            <div class="success-content">
+                <div class="success-icon">✓</div>
+                <h2>下單成功！</h2>
+                <p>訂單編號: <strong id="res-order-id">#ORD-12345</strong></p>
+                <div class="payment-info card">
+                    <h3>付款資訊</h3>
+                    <p>請於 24 小時內完成匯款</p>
+                    <div class="bank-details">
+                        <p>銀行: 某某銀行 (822)</p>
+                        <p>帳號: 1234-5678-9012</p>
+                    </div>
+                </div>
+                <button class="btn-secondary" onclick="liff.closeWindow()">關閉視窗</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
