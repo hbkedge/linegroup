@@ -171,73 +171,200 @@
     </aside>
 
     <main>
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h1>訂單列表</h1>
-            <div class="user-profile">管理員: Admin</div>
-        </header>
+        <!-- Section: Orders -->
+        <div id="section-orders" class="admin-section">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1>訂單管理</h1>
+                <div class="user-profile">管理員: Admin</div>
+            </header>
 
-        <section class="dashboard-grid">
-            <div class="stat-card">
-                <h4>本週銷售額</h4>
-                <div class="value">$54,200</div>
-            </div>
-            <div class="stat-card">
-                <h4>訂單總數</h4>
-                <div class="value">124</div>
-            </div>
-            <div class="stat-card">
-                <h4>待付款</h4>
-                <div class="value">18</div>
-            </div>
-            <div class="stat-card">
-                <h4>今日新增</h4>
-                <div class="value">12</div>
-            </div>
-        </section>
+            <section class="dashboard-grid">
+                <div class="stat-card">
+                    <h4>本週預估銷售額</h4>
+                    <div class="value">$0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>累計訂單數</h4>
+                    <div class="value">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>待處理訂單</h4>
+                    <div class="value">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>今日新單</h4>
+                    <div class="value">0</div>
+                </div>
+            </section>
 
-        <section class="table-container">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <h3>最新訂單</h3>
-                <input type="text" placeholder="搜尋訂單 ID / 姓名..."
-                    style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+            <section class="table-container">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <h3>訂單列表</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="search-order" placeholder="搜尋姓名/ID/電話..."
+                            style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                        <button class="btn-update" onclick="fetchOrders()">重新整理</button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>訂單 ID</th>
+                            <th>下單時間</th>
+                            <th>顧客資訊</th>
+                            <th>總金額</th>
+                            <th>付款狀態</th>
+                            <th>訂單狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-tbody">
+                        <!-- Content -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        </div>
+
+        <!-- Section: Campaigns -->
+        <div id="section-campaigns" class="admin-section" style="display:none;">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1>開團管理</h1>
+                <button class="btn-primary" onclick="showCampaignModal()" style="width:auto; padding: 10px 20px;">+
+                    發起新團</button>
+            </header>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>團名</th>
+                            <th>開始時間</th>
+                            <th>結束時間</th>
+                            <th>預計配送</th>
+                            <th>狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="campaign-tbody"></tbody>
+                </table>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>訂單 ID</th>
-                        <th>下單時間</th>
-                        <th>顧客姓名</th>
-                        <th>總金額</th>
-                        <th>付款狀態</th>
-                        <th>配送狀態</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="order-tbody">
-                    <tr>
-                        <td>ORD-20240327-001</td>
-                        <td>2024-03-27 10:24</td>
-                        <td>林小明</td>
-                        <td>$1,240</td>
-                        <td><span class="badge status-paid">已付款</span></td>
-                        <td><span class="badge status-processing">處理中</span></td>
-                        <td><button class="btn-update">更改狀態</button></td>
-                    </tr>
-                    <!-- More rows -->
-                </tbody>
-            </table>
-        </section>
+        </div>
+
+        <!-- Section: Statistics -->
+        <div id="section-stats" class="admin-section" style="display:none;">
+            <header style="margin-bottom: 30px;">
+                <h1>統計報表</h1>
+            </header>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div class="table-container">
+                    <h3>熱銷排行</h3>
+                    <table style="margin-top:15px;">
+                        <thead>
+                            <tr>
+                                <th>商品名稱</th>
+                                <th>銷售數量</th>
+                                <th>銷售總額</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-products-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div class="table-container">
+                    <h3>近日營收趨勢</h3>
+                    <table style="margin-top:15px;">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>訂單數</th>
+                                <th>營收金額</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-sales-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
+    <div id="campaign-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+        <div class="card" style="width: 450px; padding: 30px; background:white; border-radius:12px;">
+            <h3 id="c-modal-title" style="margin-bottom: 20px;">開團設定</h3>
+            <div class="input-group">
+                <label>團購 ID (例如: C01)</label>
+                <input type="text" id="c-id">
+            </div>
+            <div class="input-group">
+                <label>團購標題</label>
+                <input type="text" id="c-title">
+            </div>
+            <div class="input-group">
+                <label>開始時間 (YYYY-MM-DD)</label>
+                <input type="text" id="c-start">
+            </div>
+            <div class="input-group">
+                <label>截止時間 (YYYY-MM-DD)</label>
+                <input type="text" id="c-end">
+            </div>
+            <div class="input-group">
+                <label>預計配送網址/日期描述</label>
+                <input type="text" id="c-delivery">
+            </div>
+            <div class="input-group">
+                <label>狀態</label>
+                <select id="c-status">
+                    <option value="open">公開收單 (open)</option>
+                    <option value="closed">已結團 (closed)</option>
+                    <option value="hidden">隱藏 (hidden)</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-primary" onclick="saveCampaign()">儲存活動</button>
+                <button class="btn-secondary"
+                    onclick="document.getElementById('campaign-modal').style.display='none'">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmYllIoNBcZZg6s2Ih1571MkEgMbJZtwIMf64BYtZ9m3q1SKbmTW6yznhzO2Vjp6Jm/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvSeLWUmZQwrtGdmCPoyfv7M7sQ-OyVizlOi2ua8CLBmsHRZ4bDa3Ty5Jpx-mcaMg/exec';
 
         let allOrders = [];
+        let allProducts = [];
 
+        // --- Navigation ---
+        document.querySelectorAll('nav li').forEach((li, idx) => {
+            li.addEventListener('click', () => {
+                document.querySelectorAll('nav li').forEach(l => l.classList.remove('active'));
+                li.classList.add('active');
+
+                document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+                if (idx === 0) {
+                    document.getElementById('section-orders').style.display = 'block';
+                    fetchOrders();
+                } else if (idx === 1) {
+                    document.getElementById('section-products').style.display = 'block';
+                    fetchProducts();
+                } else if (idx === 2) {
+                    document.getElementById('section-campaigns').style.display = 'block';
+                    fetchCampaigns();
+                } else if (idx === 3) {
+                    document.getElementById('section-stats').style.display = 'block';
+                    renderStats();
+                }
+            });
+        });
+
+        // --- Orders Logic ---
         async function fetchOrders() {
             try {
-                // Show loading state
-                document.getElementById('order-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;">正在載入訂單...</td></tr>';
+                const tbody = document.getElementById('order-tbody');
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">正在載入訂單...</td></tr>';
 
                 const response = await fetch(`${GAS_URL}?action=get_orders`);
                 const orders = await response.json();
@@ -247,7 +374,7 @@
                 updateStats(allOrders);
             } catch (err) {
                 console.error("Failed to fetch orders", err);
-                document.getElementById('order-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">連線失敗，請檢查 GAS 網址</td></tr>';
+                document.getElementById('order-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">連線失敗</td></tr>';
             }
         }
 
@@ -274,10 +401,105 @@
             `).join('');
         }
 
+        // --- Products Logic ---
+        async function fetchProducts() {
+            try {
+                const tbody = document.getElementById('product-tbody');
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">正在載入商品...</td></tr>';
+
+                const response = await fetch(`${GAS_URL}?action=get_products_admin`);
+                allProducts = await response.json();
+                renderProducts(allProducts);
+            } catch (err) {
+                console.error("Failed to fetch products", err);
+                document.getElementById('product-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">連線失敗</td></tr>';
+            }
+        }
+
+        function renderProducts(products) {
+            const tbody = document.getElementById('product-tbody');
+            if (!products || products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">尚未建立商品</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td>${p.ID}</td>
+                    <td><img src="${p.ImageURL}" style="width:40px; height:40px; border-radius:4px; object-fit:cover; background:#eee"></td>
+                    <td>${p.Name}</td>
+                    <td style="font-weight:600">$${p.Price}</td>
+                    <td>${p.Stock}</td>
+                    <td><span class="badge ${p.Status === 'active' ? 'status-paid' : 'status-unpaid'}">${p.Status}</span></td>
+                    <td>
+                        <button class="btn-update" onclick="editProduct('${p.ID}')">編輯</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showProductModal(editingId = null) {
+            document.getElementById('product-modal').style.display = 'flex';
+            if (editingId) {
+                const p = allProducts.find(item => item.ID === editingId);
+                document.getElementById('modal-title').innerText = '編輯商品';
+                document.getElementById('p-id').value = p.ID;
+                document.getElementById('p-id').disabled = true;
+                document.getElementById('p-name').value = p.Name;
+                document.getElementById('p-price').value = p.Price;
+                document.getElementById('p-image').value = p.ImageURL;
+                document.getElementById('p-stock').value = p.Stock;
+                document.getElementById('p-status').value = p.Status;
+            } else {
+                document.getElementById('modal-title').innerText = '新增商品';
+                document.getElementById('p-id').value = 'P' + (allProducts.length + 1).toString().padStart(2, '0');
+                document.getElementById('p-id').disabled = false;
+                document.getElementById('p-name').value = '';
+                document.getElementById('p-price').value = '';
+                document.getElementById('p-image').value = '';
+                document.getElementById('p-stock').value = '100';
+                document.getElementById('p-status').value = 'active';
+            }
+        }
+
+        function hideProductModal() {
+            document.getElementById('product-modal').style.display = 'none';
+        }
+
+        async function saveProduct() {
+            const product = {
+                ID: document.getElementById('p-id').value,
+                Name: document.getElementById('p-name').value,
+                Price: document.getElementById('p-price').value,
+                ImageURL: document.getElementById('p-image').value,
+                Stock: document.getElementById('p-stock').value,
+                Status: document.getElementById('p-status').value
+            };
+
+            if (!product.ID || !product.Name) return alert('請填寫完整資訊');
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ action: 'save_product', product: product })
+                });
+                alert('指令已送出！更新可能在大約 1 秒後完成。');
+                hideProductModal();
+                setTimeout(fetchProducts, 1000);
+            } catch (err) {
+                alert('儲存失敗: ' + err.message);
+            }
+        }
+
+        function editProduct(id) {
+            showProductModal(id);
+        }
+
         function getStatusClass(status) {
             const s = status ? status.toLowerCase() : '';
-            if (s === 'paid' || s === 'finish' || s === '已付款' || s === '已完成') return 'status-paid';
-            if (s === 'unpaid' || s === 'cancel' || s === '未付款' || s === '已取消') return 'status-unpaid';
+            if (s === 'paid' || s === 'finish' || s === '已付款') return 'status-paid';
+            if (s === 'unpaid' || s === 'cancel' || s === '未付款') return 'status-unpaid';
             return 'status-processing';
         }
 
@@ -298,22 +520,16 @@
             const todayStr = new Date().toISOString().split('T')[0];
             const todayOrders = orders.filter(o => o.timestamp.includes(todayStr)).length;
 
-            document.querySelector('.stat-card:nth-child(1) .value').innerText = `$${totalRevenue.toLocaleString()}`;
-            document.querySelector('.stat-card:nth-child(2) .value').innerText = orders.length;
-            document.querySelector('.stat-card:nth-child(3) .value').innerText = unpaidCount;
-            document.querySelector('.stat-card:nth-child(4) .value').innerText = todayOrders;
+            document.querySelectorAll('.stat-card .value')[0].innerText = `$${totalRevenue.toLocaleString()}`;
+            document.querySelectorAll('.stat-card .value')[1].innerText = orders.length;
+            document.querySelectorAll('.stat-card .value')[2].innerText = unpaidCount;
+            document.querySelectorAll('.stat-card .value')[3].innerText = todayOrders;
         }
 
         async function changeStatus(orderId, newStatus) {
             if (!confirm(`確定要將訂單 ${orderId} 狀態更改為 ${translate(newStatus)} 嗎？`)) return;
 
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = '...';
-            btn.disabled = true;
-
             try {
-                // Determine if we are updating paymentStatus or general status
                 let payload = { action: 'update_order', orderId: orderId };
                 if (newStatus === 'Paid') payload.paymentStatus = 'Paid';
                 if (newStatus === 'Finish') payload.status = 'Finish';
@@ -324,20 +540,17 @@
                     body: JSON.stringify(payload)
                 });
 
-                // Since no-cors, we manually refresh after a delay
                 setTimeout(() => {
                     alert("狀態更新指令已送出！");
                     fetchOrders();
                 }, 1000);
             } catch (err) {
                 alert("更新失敗: " + err.message);
-                btn.innerText = originalText;
-                btn.disabled = false;
             }
         }
 
-        // Search Filter
-        document.querySelector('input[placeholder*="搜尋"]').addEventListener('input', (e) => {
+        // Search Orders Filter
+        document.getElementById('search-order').addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
             const filtered = allOrders.filter(o =>
                 o.id.toLowerCase().includes(keyword) ||
@@ -348,6 +561,125 @@
         });
 
         // Initial Load
+        // --- Campaign Logic ---
+        let allCampaigns = [];
+        async function fetchCampaigns() {
+            try {
+                const tbody = document.getElementById('campaign-tbody');
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">載入中...</td></tr>';
+                const response = await fetch(`${GAS_URL}?action=get_campaigns`);
+                allCampaigns = await response.json();
+                renderCampaigns(allCampaigns);
+            } catch (err) { console.error(err); }
+        }
+
+        function renderCampaigns(campaigns) {
+            const tbody = document.getElementById('campaign-tbody');
+            tbody.innerHTML = campaigns.map(c => `
+                <tr>
+                    <td>${c.ID}</td>
+                    <td>${c.Title}</td>
+                    <td>${c.StartTime}</td>
+                    <td>${c.EndTime}</td>
+                    <td>${c.DeliveryDate}</td>
+                    <td><span class="badge ${c.Status === 'open' ? 'status-paid' : 'status-unpaid'}">${c.Status}</span></td>
+                    <td><button class="btn-update" onclick="editCampaign('${c.ID}')">編輯</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function showCampaignModal() {
+            document.getElementById('campaign-modal').style.display = 'flex';
+            document.getElementById('c-id').value = 'C' + (allCampaigns.length + 1).toString().padStart(2, '0');
+            document.getElementById('c-id').disabled = false;
+        }
+
+        function editCampaign(id) {
+            const c = allCampaigns.find(item => item.ID === id);
+            document.getElementById('campaign-modal').style.display = 'flex';
+            document.getElementById('c-id').value = c.ID;
+            document.getElementById('c-id').disabled = true;
+            document.getElementById('c-title').value = c.Title;
+            document.getElementById('c-start').value = c.StartTime;
+            document.getElementById('c-end').value = c.EndTime;
+            document.getElementById('c-delivery').value = c.DeliveryDate;
+            document.getElementById('c-status').value = c.Status;
+        }
+
+        async function saveCampaign() {
+            const campaign = {
+                ID: document.getElementById('c-id').value,
+                Title: document.getElementById('c-title').value,
+                StartTime: document.getElementById('c-start').value,
+                EndTime: document.getElementById('c-end').value,
+                DeliveryDate: document.getElementById('c-delivery').value,
+                Status: document.getElementById('c-status').value
+            };
+            try {
+                await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'save_campaign', campaign }) });
+                alert('開團資訊已更新！');
+                document.getElementById('campaign-modal').style.display = 'none';
+                setTimeout(fetchCampaigns, 1000);
+            } catch (err) { alert(err.message); }
+        }
+
+        // --- Stats Logic ---
+        function renderStats() {
+            if (allOrders.length === 0) return;
+
+            // 1. Top Products
+            const productMap = {};
+            allOrders.forEach(o => {
+                try {
+                    const items = JSON.parse(o.items);
+                    if (Array.isArray(items)) {
+                        items.forEach(item => {
+                            if (!productMap[item.name]) {
+                                productMap[item.name] = { qty: 0, total: 0 };
+                            }
+                            productMap[item.name].qty += (item.qty || 0);
+                            productMap[item.name].total += (item.qty * item.price || 0);
+                        });
+                    }
+                } catch (e) {
+                    console.log('Stats error parsing items', e);
+                }
+            });
+
+            const topProducts = Object.keys(productMap).map(name => ({
+                name,
+                ...productMap[name]
+            })).sort((a, b) => b.qty - a.qty);
+
+            document.getElementById('top-products-tbody').innerHTML = topProducts.slice(0, 10).map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td style="font-weight:600">${p.qty}</td>
+                    <td style="color:var(--primary)">$${p.total.toLocaleString()}</td>
+                </tr>
+            `).join('');
+
+            // 2. Daily Sales
+            const dailyMap = {};
+            allOrders.forEach(o => {
+                const date = o.timestamp ? o.timestamp.split(' ')[0] : 'Unknown';
+                if (!dailyMap[date]) {
+                    dailyMap[date] = { count: 0, revenue: 0 };
+                }
+                dailyMap[date].count++;
+                dailyMap[date].revenue += (parseFloat(o.total) || 0);
+            });
+
+            const dailyTrend = Object.keys(dailyMap).sort().reverse();
+            document.getElementById('daily-sales-tbody').innerHTML = dailyTrend.slice(0, 7).map(date => `
+                <tr>
+                    <td>${date}</td>
+                    <td>${dailyMap[date].count}</td>
+                    <td style="font-weight:600">$${dailyMap[date].revenue.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
         fetchOrders();
     </script>
 </body>
