@@ -122,11 +122,13 @@ function selectCampaign(id) {
     }) : '無';
 
     document.getElementById('campaign-title').innerText = activeCampaign.Title;
-    document.getElementById('campaign-ends').innerText = `截單時間: ${dateStr}`;
+    document.getElementById('campaign-ends').innerText = `截止日期: ${dateStr}`;
 
     // Filter products
     filterAndRenderProducts();
     
+    // Ensure loading is GONE
+    document.getElementById('loading').classList.remove('active');
     showScreen('home-screen');
 }
 
@@ -202,7 +204,7 @@ function filterAndRenderProducts() {
                 id: i,
                 name: p.Name,
                 price: p.Price,
-                img: p.Image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop',
+                img: p.ImageURL || p.Image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop',
                 stock: p.Stock || 99
             }));
     }
