@@ -230,16 +230,125 @@
     </main>
 
     <script>
-        // In real use, this will fetch from GAS Web App
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvSeLWUmZQwrtGdmCPoyfv7M7sQ-OyVizlOi2ua8CLBmsHRZ4bDa3Ty5Jpx-mcaMg/exec';
+
+        let allOrders = [];
+
         async function fetchOrders() {
-            // Mock fetching from GAS
-            console.log("Fetching orders from backend...");
+            try {
+                // Show loading state
+                document.getElementById('order-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;">正在載入訂單...</td></tr>';
+
+                const response = await fetch(`${GAS_URL}?action=get_orders`);
+                const orders = await response.json();
+
+                allOrders = Array.isArray(orders) ? orders : [];
+                renderOrders(allOrders);
+                updateStats(allOrders);
+            } catch (err) {
+                console.error("Failed to fetch orders", err);
+                document.getElementById('order-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">連線失敗，請檢查 GAS 網址</td></tr>';
+            }
         }
 
-        async function updateStatus(orderId, newStatus) {
-            // Send API call to GAS
-            alert("訂單已更新其狀態: " + orderId);
+        function renderOrders(orders) {
+            const tbody = document.getElementById('order-tbody');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">尚無訂單資料</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>${order.id}</td>
+                    <td>${order.timestamp}</td>
+                    <td>${order.name} <br><small style="color:#999">${order.phone}</small></td>
+                    <td style="font-weight:600">$${order.total}</td>
+                    <td><span class="badge ${getStatusClass(order.paymentStatus)}">${translate(order.paymentStatus)}</span></td>
+                    <td><span class="badge ${getStatusClass(order.status)}">${translate(order.status)}</span></td>
+                    <td style="display:flex; gap:5px;">
+                        <button class="btn-update" onclick="changeStatus('${order.id}', 'Paid')">已付</button>
+                        <button class="btn-update" style="background:#2ecc71" onclick="changeStatus('${order.id}', 'Finish')">結案</button>
+                    </td>
+                </tr>
+            `).join('');
         }
+
+        function getStatusClass(status) {
+            const s = status ? status.toLowerCase() : '';
+            if (s === 'paid' || s === 'finish' || s === '已付款' || s === '已完成') return 'status-paid';
+            if (s === 'unpaid' || s === 'cancel' || s === '未付款' || s === '已取消') return 'status-unpaid';
+            return 'status-processing';
+        }
+
+        function translate(status) {
+            const mapping = {
+                'Unpaid': '未付款',
+                'Paid': '已付款',
+                'Processing': '處理中',
+                'Finish': '已完成',
+                'Cancel': '已取消'
+            };
+            return mapping[status] || status;
+        }
+
+        function updateStats(orders) {
+            const totalRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const unpaidCount = orders.filter(o => o.paymentStatus === 'Unpaid').length;
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayOrders = orders.filter(o => o.timestamp.includes(todayStr)).length;
+
+            document.querySelector('.stat-card:nth-child(1) .value').innerText = `$${totalRevenue.toLocaleString()}`;
+            document.querySelector('.stat-card:nth-child(2) .value').innerText = orders.length;
+            document.querySelector('.stat-card:nth-child(3) .value').innerText = unpaidCount;
+            document.querySelector('.stat-card:nth-child(4) .value').innerText = todayOrders;
+        }
+
+        async function changeStatus(orderId, newStatus) {
+            if (!confirm(`確定要將訂單 ${orderId} 狀態更改為 ${translate(newStatus)} 嗎？`)) return;
+
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = '...';
+            btn.disabled = true;
+
+            try {
+                // Determine if we are updating paymentStatus or general status
+                let payload = { action: 'update_order', orderId: orderId };
+                if (newStatus === 'Paid') payload.paymentStatus = 'Paid';
+                if (newStatus === 'Finish') payload.status = 'Finish';
+
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(payload)
+                });
+
+                // Since no-cors, we manually refresh after a delay
+                setTimeout(() => {
+                    alert("狀態更新指令已送出！");
+                    fetchOrders();
+                }, 1000);
+            } catch (err) {
+                alert("更新失敗: " + err.message);
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Search Filter
+        document.querySelector('input[placeholder*="搜尋"]').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = allOrders.filter(o =>
+                o.id.toLowerCase().includes(keyword) ||
+                o.name.toLowerCase().includes(keyword) ||
+                o.phone.includes(keyword)
+            );
+            renderOrders(filtered);
+        });
+
+        // Initial Load
+        fetchOrders();
     </script>
 </body>
 
