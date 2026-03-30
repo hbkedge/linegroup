@@ -11,6 +11,7 @@ let userProfile = null;
 let openCampaigns = [];
 let activeCampaign = null;
 let allAvailableProducts = [];
+let initialPageProcessed = false;
 
 // GAS Web App URL (To be updated after deployment)
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmYllIoNBcZZg6s2Ih1571MkEgMbJZtwIMf64BYtZ9m3q1SKbmTW6yznhzO2Vjp6Jm/exec';
@@ -138,7 +139,13 @@ function selectCampaign(id) {
         backBtn.style.display = 'flex';
     }
 
-    showScreen('home-screen');
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page');
+    if (!page || page === 'order') {
+        showScreen('home-screen');
+    } else {
+        hideLoading(); // Just hide the loading and stay on whatever screen has been set
+    }
 }
 
 async function fetchOrders() {
@@ -288,8 +295,20 @@ function hideLoading() {
     const loader = document.getElementById('loading');
     if (loader) loader.classList.add('hidden');
     
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('home-screen').classList.add('active');
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page');
+
+    if (!initialPageProcessed && page === 'history') {
+        initialPageProcessed = true;
+        showScreen('order-history-screen');
+    } else if (!initialPageProcessed && page === 'payment') {
+        initialPageProcessed = true;
+        showScreen('payment-report-screen');
+    } else {
+        initialPageProcessed = true;
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('home-screen').classList.add('active');
+    }
 }
 
 // Event Listeners
