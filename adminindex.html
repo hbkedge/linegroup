@@ -210,6 +210,7 @@
                 <li>商品設定</li>
                 <li>開團管理</li>
                 <li>統計報表</li>
+                <li>真人客服</li>
             </ul>
         </nav>
     </aside>
@@ -358,7 +359,52 @@
                     </table>
                 </div>
             </div>
-        </div>
+            <!-- Section: Customer Service (Live Chat) -->
+            <div id="section-chat" class="admin-section" style="display:none;">
+                <header style="margin-bottom: 30px;">
+                    <h1>真人客服</h1>
+                </header>
+
+                <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px; height: calc(100vh - 180px);">
+                    <!-- User List -->
+                    <div class="table-container" style="overflow-y: auto; display: flex; flex-direction: column;">
+                        <div style="margin-bottom: 15px;">
+                            <input type="text" id="search-chat-user" placeholder="搜尋用戶..."
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+                        <div id="chat-user-list" style="flex: 1;">
+                            <!-- Users will be listed here -->
+                        </div>
+                    </div>
+
+                    <!-- Chat Display -->
+                    <div id="chat-window" class="table-container"
+                        style="display: flex; flex-direction: column; padding: 0;">
+                        <div id="chat-header"
+                            style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                            <div id="active-user-info">請選擇一位用戶開始對話</div>
+                            <div id="live-agent-toggle-container" style="display:none;">
+                                <label style="font-size:12px; margin-right:5px;">真人模式</label>
+                                <input type="checkbox" id="live-agent-status-cb"
+                                    onchange="toggleUserLiveAgent(this.checked)">
+                            </div>
+                        </div>
+                        <div id="chat-messages"
+                            style="flex: 1; padding: 20px; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; gap: 10px;">
+                            <p style="text-align:center; color:#999; margin-top: 100px;">點擊左側用戶以查看對話記錄</p>
+                        </div>
+                        <div id="chat-input-container"
+                            style="padding: 15px; border-top: 1px solid #eee; display: none;">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="admin-reply-input" placeholder="輸入訊息..."
+                                    style="flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 20px;">
+                                <button class="btn-primary" onclick="adminSendMessage()"
+                                    style="width: auto; border-radius: 20px; padding: 0 20px;">發送</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
     </main>
 
     <!-- Product Edit Modal -->
@@ -427,7 +473,8 @@
             </div>
             <div class="input-group">
                 <label>選擇開團商品 (可複選)</label>
-                <div id="c-product-selection" style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 6px; background: #fafafa;">
+                <div id="c-product-selection"
+                    style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 6px; background: #fafafa;">
                     <p style="color:#999; font-size:12px; text-align:center;">正在載入商品列表...</p>
                 </div>
             </div>
@@ -472,8 +519,144 @@
                 } else if (idx === 3) {
                     document.getElementById('section-stats').style.display = 'block';
                     renderStats();
+                } else if (idx === 4) {
+                    document.getElementById('section-chat').style.display = 'block';
+                    fetchChatUsers();
                 }
             });
+        });
+
+
+        // --- Chat Logic ---
+        let chatUsers = [];
+        let selectedUserId = null;
+
+        async function fetchChatUsers() {
+            try {
+                const listContainer = document.getElementById('chat-user-list');
+                listContainer.innerHTML = '<p style="text-align:center; color:#999; padding: 20px;">載入用戶中...</p>';
+
+                const response = await fetch(`${GAS_URL}?action=get_users`);
+                chatUsers = await response.json();
+                renderChatUserList(chatUsers);
+            } catch (err) { console.error(err); }
+        }
+
+        function renderChatUserList(users) {
+            const listContainer = document.getElementById('chat-user-list');
+            if (!users || users.length === 0) {
+                listContainer.innerHTML = '<p style="text-align:center; color:#999;">目前沒有用戶</p>';
+                return;
+            }
+
+            listContainer.innerHTML = users.map(user => `
+                <div class="chat-user-item ${selectedUserId === user.userId ? 'active' : ''}" onclick="selectChatUser('${user.userId}')" 
+                     style="padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; transition: 0.2s; border: 1px solid transparent; ${selectedUserId === user.userId ? 'background: #eef5ff; border-color: #4a90e2;' : ''}">
+                    <img src="${user.pictureUrl || 'https://via.placeholder.com/40'}" style="width: 40px; height: 40px; border-radius: 50%; background: #eee;">
+                    <div style="flex: 1; overflow: hidden;">
+                        <div style="font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.displayName}</div>
+                        <div style="font-size: 11px; color: ${user.isLiveAgentMode ? '#ff4d4f' : '#999'}">${user.isLiveAgentMode ? '🔴 真人客服中' : '🤖 自動回覆中'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function selectChatUser(userId) {
+            selectedUserId = userId;
+            const user = chatUsers.find(u => u.userId === userId);
+
+            // UI setup
+            document.getElementById('active-user-info').innerHTML = `<strong>${user.displayName}</strong> <small style="color:#999">(${userId})</small>`;
+            document.getElementById('live-agent-toggle-container').style.display = 'block';
+            document.getElementById('live-agent-status-cb').checked = user.isLiveAgentMode;
+            document.getElementById('chat-input-container').style.display = 'block';
+
+            renderChatUserList(chatUsers); // Update selection styles
+
+            // Show loading
+            const msgContainer = document.getElementById('chat-messages');
+            msgContainer.innerHTML = '<p style="text-align:center; color:#999; margin-top: 50px;">載入記錄中...</p>';
+
+            try {
+                const response = await fetch(`${GAS_URL}?action=get_interactions&userId=${userId}`);
+                const logs = await response.json();
+                renderMessages(logs);
+            } catch (err) { console.error(err); }
+        }
+
+        function renderMessages(logs) {
+            const msgContainer = document.getElementById('chat-messages');
+            if (!logs || logs.length === 0) {
+                msgContainer.innerHTML = '<p style="text-align:center; color:#999; margin-top: 50px;">尚無對話記錄</p>';
+                return;
+            }
+
+            msgContainer.innerHTML = logs.map(log => {
+                const isUser = log.type === 'Message';
+                return `
+                    <div style="display: flex; flex-direction: column; align-items: ${isUser ? 'flex-start' : 'flex-end'}; width: 100%;">
+                        <div style="max-width: 80%; padding: 10px 15px; border-radius: 12px; font-size: 14px; line-height: 1.4; 
+                             ${isUser ? 'background: white; border: 1px solid #eee; border-bottom-left-radius: 2px;' : 'background: #4a90e2; color: white; border-bottom-right-radius: 2px; shadow: 0 2px 4px rgba(74,144,226,0.2);'}">
+                            ${log.content}
+                        </div>
+                        <div style="font-size: 10px; color: #999; margin-top: 4px;">${new Date(log.timestamp).toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // Scroll to bottom
+            setTimeout(() => { msgContainer.scrollTop = msgContainer.scrollHeight; }, 100);
+        }
+
+        async function toggleUserLiveAgent(status) {
+            if (!selectedUserId) return;
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ action: 'toggle_live_agent', userId: selectedUserId, status: status })
+                });
+                alert(status ? '已切換為真人模式，自動回覆已暫停' : '已切換為自動模式');
+                // Refresh local state
+                const user = chatUsers.find(u => u.userId === selectedUserId);
+                if (user) user.isLiveAgentMode = status;
+                renderChatUserList(chatUsers);
+            } catch (err) { alert(err.message); }
+        }
+
+        async function adminSendMessage() {
+            const input = document.getElementById('admin-reply-input');
+            const text = input.value.trim();
+            if (!text || !selectedUserId) return;
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ action: 'send_message', userId: selectedUserId, text: text })
+                });
+
+                // Optimistic UI update
+                const msgContainer = document.getElementById('chat-messages');
+                const adminMsgHtml = `
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; width: 100%;">
+                        <div style="max-width: 80%; padding: 10px 15px; border-radius: 12px; font-size: 14px; line-height: 1.4; background: #4a90e2; color: white; border-bottom-right-radius: 2px;">
+                            ${text}
+                        </div>
+                        <div style="font-size: 10px; color: #999; margin-top: 4px;">剛剛</div>
+                    </div>
+                `;
+                msgContainer.innerHTML += adminMsgHtml;
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+                input.value = '';
+            } catch (err) { alert('發送失敗: ' + err.message); }
+        }
+
+        // Search Chat Users
+        document.getElementById('search-chat-user').addEventListener('input', (e) => {
+            const kw = e.target.value.toLowerCase();
+            const filtered = chatUsers.filter(u => u.displayName.toLowerCase().includes(kw) || u.userId.toLowerCase().includes(kw));
+            renderChatUserList(filtered);
         });
 
         // --- Orders Logic ---
@@ -714,7 +897,7 @@
             document.getElementById('c-end').value = '';
             document.getElementById('c-delivery').value = '';
             document.getElementById('c-status').value = 'open';
-            
+
             renderProductCheckboxes([]);
         }
 
@@ -724,7 +907,7 @@
                 container.innerHTML = '<p style="color:#999; font-size:12px; text-align:center;">請先至「商品設定」新增商品</p>';
                 return;
             }
-            
+
             // selectedIds could be a comma-separated string from Google Sheets
             const idsList = typeof selectedIds === 'string' ? selectedIds.split(',').map(s => s.trim()) : selectedIds;
 
@@ -750,14 +933,14 @@
             document.getElementById('c-end').value = c.EndTime;
             document.getElementById('c-delivery').value = c.DeliveryDate;
             document.getElementById('c-status').value = c.Status;
-            
+
             // Populate checkboxes
             renderProductCheckboxes(c.Products || '');
         }
 
         async function saveCampaign() {
             const selectedProductIds = Array.from(document.querySelectorAll('input[name="c-products"]:checked')).map(cb => cb.value);
-            
+
             const campaign = {
                 ID: document.getElementById('c-id').value,
                 Title: document.getElementById('c-title').value,
