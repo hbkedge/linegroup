@@ -40,7 +40,8 @@
             <header>
                 <div class="header-content">
                     <div>
-                        <button id="nav-back-to-campaigns" class="btn-back" style="margin-bottom: 5px;">&larr; 切換活動</button>
+                        <button id="nav-back-to-campaigns" class="btn-back" style="margin-bottom: 5px;">&larr;
+                            切換活動</button>
                         <h1>最新開團</h1>
                     </div>
                     <div id="user-info" class="user-chip">
@@ -61,10 +62,13 @@
 
             <div class="bottom-nav">
                 <div class="nav-icons" style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <button id="nav-history" class="btn-outline" 
+                    <button id="nav-history" class="btn-outline"
                         style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">歷史訂單</button>
-                    <button id="nav-payment" class="btn-outline" 
+                    <button id="nav-payment" class="btn-outline"
                         style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">回報付款</button>
+                    <button id="nav-chat" class="btn-outline"
+                        style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">💬
+                        客服</button>
                 </div>
                 <button id="view-cart" class="btn-primary">
                     查看購物車 (<span id="cart-count">0</span>)
@@ -181,6 +185,32 @@
                     </div>
                 </div>
                 <button class="btn-secondary" onclick="closeApp()">關閉視窗</button>
+            </div>
+        </section>
+
+        <!-- Customer Service Screen -->
+        <section id="chat-screen" class="screen">
+            <div class="header-back">
+                <button class="btn-back" onclick="showScreen('home-screen')">&larr; 返回首頁</button>
+                <h2>真人客服</h2>
+            </div>
+            <div class="chat-intro-card card" style="text-align:center; padding: 40px 20px;">
+                <div style="font-size: 50px; margin-bottom: 20px;">🙋‍♀️</div>
+                <h3>需要真人協助嗎？</h3>
+                <p style="color:#666; margin-bottom: 30px;">點擊下方按鈕，系統將為您轉接真人客服。轉接後請直接在 LINE 對話視窗中輸入您的問題，管理員將儘快回覆您。</p>
+
+                <div id="live-chat-status"
+                    style="margin-bottom: 30px; padding: 10px; background: #f8fafc; border-radius: 8px; display: none;">
+                    <span style="color: #4a90e2; font-weight: 600;">✅ 已成功請求轉接</span>
+                </div>
+
+                <button id="btn-start-live-chat" class="btn-primary"
+                    style="width:100%; max-width: 250px;">點此開始真人對話</button>
+
+                <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                    * 轉接後機器人將暫時停止自動回覆。<br>
+                    * 若長時間未收到回覆，請多包涵。
+                </p>
             </div>
         </section>
     </div>

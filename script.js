@@ -27,7 +27,7 @@ async function init() {
         // Set a timeout for LIFF initialization
         const liffPromise = liff.init({ liffId: '2009603120-T9MofEjW' });
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LIFF timeout')), 5000));
-        
+
         await Promise.race([liffPromise, timeoutPromise]);
         console.log('LIFF initialized, isLoggedIn:', liff.isLoggedIn());
 
@@ -42,14 +42,14 @@ async function init() {
                 avatar.style.display = 'block';
             }
         }
-        
+
         // Fetch initial data
         await Promise.allSettled([
             fetchProducts(), // Fetches all available products once
             fetchCampaign(), // Fetches open campaigns
             fetchOrders()
         ]);
-        
+
         clearTimeout(loadingTimeout);
         // hideLoading is called inside fetchCampaign or selectCampaign
     } catch (err) {
@@ -67,7 +67,7 @@ async function fetchCampaign() {
     try {
         const response = await fetch(`${GAS_URL}?action=get_config`);
         const data = await response.json();
-        
+
         if (Array.isArray(data)) {
             openCampaigns = data.filter(c => c.Status === 'open');
         } else if (data && data.Status === 'open') {
@@ -126,10 +126,10 @@ function selectCampaign(id) {
 
     // Filter products
     filterAndRenderProducts();
-    
+
     // Hide loading screen
     document.getElementById('loading').classList.add('hidden');
-    
+
     // If only one campaign, hide the back-to-campaigns button
     const backBtn = document.getElementById('nav-back-to-campaigns');
     if (openCampaigns.length <= 1) {
@@ -159,7 +159,7 @@ function renderOrders(orders) {
         list.innerHTML = '<p style="text-align: center; color: #999;">您還沒有訂單記錄</p>';
         return;
     }
-    
+
     // If we have a user profile, only show their orders. Otherwise show all (for testing).
     const filterId = userProfile ? userProfile.userId : null;
     const myOrders = filterId ? orders.filter(o => o.userId === filterId) : orders;
@@ -287,7 +287,7 @@ function showScreen(screenId) {
 function hideLoading() {
     const loader = document.getElementById('loading');
     if (loader) loader.classList.add('hidden');
-    
+
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('home-screen').classList.add('active');
 }
@@ -300,6 +300,46 @@ document.getElementById('nav-history').addEventListener('click', () => {
 
 document.getElementById('nav-payment').addEventListener('click', () => {
     showScreen('payment-report-screen');
+});
+
+document.getElementById('nav-chat').addEventListener('click', () => {
+    showScreen('chat-screen');
+});
+
+document.getElementById('btn-start-live-chat').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-start-live-chat');
+    btn.disabled = true;
+    btn.innerText = '正在轉接...';
+
+    try {
+        const userId = userProfile ? userProfile.userId : 'anonymous';
+        // 呼叫 GAS 後台切換至真人模式
+        await fetch(GAS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'toggle_live_agent',
+                userId: userId,
+                status: true
+            })
+        });
+
+        // 顯示成功狀態
+        document.getElementById('live-chat-status').style.display = 'block';
+        btn.innerText = '轉接成功';
+        btn.style.background = '#ccc';
+
+        // 延遲關閉 LIFF，引導用戶回到 LINE 聊天室
+        setTimeout(() => {
+            alert('已為您轉接真人客服！請關閉此視窗並在聊天室中輸入訊息，專員將為您服務。');
+            closeApp();
+        }, 1500);
+
+    } catch (err) {
+        alert('轉接失敗，請稍後再試：' + err.message);
+        btn.disabled = false;
+        btn.innerText = '點此開始真人對話';
+    }
 });
 
 document.getElementById('nav-back-to-campaigns').addEventListener('click', () => {
