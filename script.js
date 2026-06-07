@@ -302,9 +302,12 @@ document.getElementById('nav-payment').addEventListener('click', () => {
     showScreen('payment-report-screen');
 });
 
-document.getElementById('nav-chat').addEventListener('click', () => {
-    showScreen('chat-screen');
-});
+const navChat = document.getElementById('nav-chat');
+if (navChat) {
+    navChat.addEventListener('click', () => {
+        showScreen('chat-screen');
+    });
+}
 
 document.getElementById('btn-start-live-chat').addEventListener('click', async () => {
     const btn = document.getElementById('btn-start-live-chat');
